@@ -98,7 +98,7 @@ async function run() {
         }
 
 
-        
+
 
         app.get('/myExports', verifyFireBaseUser, async (req, res) => {
             // console.log(req.this_user)
@@ -112,7 +112,15 @@ async function run() {
         app.get('/products', async (req, res) => {
             // console.log(req.this_user)
 
-            const cursor = exportsCol.find()
+            const cursor = exportsCol.find().sort({ createdAt: -1 })
+
+            if (req.query.limit) {
+                let limit = 0;
+                try {
+                    limit = parseInt(req.query.limit)
+                } catch (err) { }
+                cursor.limit(limit)
+            }
 
             const result = await cursor.toArray()
             // console.log(r)
@@ -150,7 +158,7 @@ async function run() {
             if (!result.user_id.equals(req.this_user._id)) {
                 return res.status(403).send({ message: "Forbidden access. Insufficient permission to access this resource." })
             }
-           
+
             const result2 = await exportsCol.deleteOne({ _id: new ObjectId(req.params.id) })
             // console.log(r)
             res.send(result2)
@@ -166,11 +174,11 @@ async function run() {
             if (!result.user_id.equals(req.this_user._id)) {
                 return res.status(403).send({ message: "Forbidden access. Insufficient permission to access this resource." })
             }
-            
+
             //do not change id by hackers
             delete req.body._id;
 
-            const result2 = await exportsCol.updateOne({ _id: new ObjectId(req.params.id) }, [{$set:req.body}])
+            const result2 = await exportsCol.updateOne({ _id: new ObjectId(req.params.id) }, [{ $set: req.body }])
             // console.log(r)
             res.send(result2)
         })
