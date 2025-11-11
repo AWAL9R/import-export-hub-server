@@ -109,6 +109,35 @@ async function run() {
             res.send(result)
         })
 
+        app.get('/myImports', verifyFireBaseUser, async (req, res) => {
+            // console.log(req.this_user)
+            // find({ user_id: req.this_user._id })
+            const cursor = importsCol.aggregate([
+                { $match: { user_id: req.this_user._id } },
+                {
+                    $lookup: {
+                        from: "exports",          // foreign collection
+                        localField: "product_id",  // field in orders
+                        foreignField: "_id",       // matching field in products
+                        as: "product"              // output array field
+                    }
+                },
+                {
+                    $lookup: {
+                        from: "users",          // foreign collection
+                        localField: "user_id",  // field in orders
+                        foreignField: "_id",       // matching field in products
+                        as: "user"              // output array field
+                    }
+                },
+                { $unwind: "$product" },       // optional: flatten product array
+                { $unwind: "$user" }
+            ])
+            result = await cursor.toArray()
+            // console.log(r)
+            res.send(result)
+        })
+
         app.get('/products', async (req, res) => {
             // console.log(req.this_user)
 
@@ -191,7 +220,7 @@ async function run() {
                 user_id: req.this_user._id,
                 createdAt: new Date().getTime(),
                 quantity: req.body.quantity,
-                product_id: req.body.product_id
+                product_id: new ObjectId(req.body.product_id)
             }
 
             const product = await exportsCol.findOne({ _id: new ObjectId(req.body.product_id) })
@@ -202,15 +231,31 @@ async function run() {
                 const update = await exportsCol.updateOne({ _id: new ObjectId(req.body.product_id) }, [{ $set: { quantity: newQuantity } }])
                 // console.log(update)
                 if (update.modifiedCount) {
-                    product.quantity=newQuantity;
+                    product.quantity = newQuantity;
                     const insert = await importsCol.insertOne(newImport)
                     if (insert.insertedId) {
-                        return res.send({ ...insert, success: true, product, message: "You imported "+product.name+". see more on My imports page" })
+                        return res.send({ ...insert, success: true, product, message: "You imported " + product.name + ". see more on My imports page" })
                     }
                 }
             }
 
             return res.status(200).send({ message: "Unable to fulfil your request", product })
+        })
+
+        app.delete('/imports/:id', verifyFireBaseUser, async (req, res) => {
+            // console.log(req.this_user)
+
+            const result = await importsCol.findOne({ _id: new ObjectId(req.params.id) })
+            if (!result) {
+                return res.status(404).send({ message: "Import Not found." })
+            }
+            if (!result.user_id.equals(req.this_user._id)) {
+                return res.status(403).send({ message: "Forbidden access. Insufficient permission to access this resource." })
+            }
+
+            const result2 = await importsCol.deleteOne({ _id: new ObjectId(req.params.id) })
+            // console.log(r)
+            res.send(result2)
         })
 
 
