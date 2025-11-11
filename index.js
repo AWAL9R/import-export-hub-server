@@ -184,6 +184,35 @@ async function run() {
         })
 
 
+        app.post('/imports', verifyFireBaseUser, async (req, res) => {
+            // console.log(req.this_user)
+
+            const newImport = {
+                user_id: req.this_user._id,
+                createdAt: new Date().getTime(),
+                quantity: req.body.quantity,
+                product_id: req.body.product_id
+            }
+
+            const product = await exportsCol.findOne({ _id: new ObjectId(req.body.product_id) })
+
+            const newQuantity = parseInt(product.quantity) - parseInt(req.body.quantity)
+
+            if (newQuantity >= 0) {
+                const update = await exportsCol.updateOne({ _id: new ObjectId(req.body.product_id) }, [{ $set: { quantity: newQuantity } }])
+                // console.log(update)
+                if (update.modifiedCount) {
+                    product.quantity=newQuantity;
+                    const insert = await importsCol.insertOne(newImport)
+                    if (insert.insertedId) {
+                        return res.send({ ...insert, success: true, product, message: "You imported "+product.name+". see more on My imports page" })
+                    }
+                }
+            }
+
+            return res.status(200).send({ message: "Unable to fulfil your request", product })
+        })
+
 
 
 
