@@ -131,7 +131,8 @@ async function run() {
                     }
                 },
                 { $unwind: "$product" },       // optional: flatten product array
-                { $unwind: "$user" }
+                { $unwind: "$user" },
+                { $sort: { createdAt: -1 } }
             ])
             result = await cursor.toArray()
             // console.log(r)
@@ -172,9 +173,26 @@ async function run() {
         app.get('/products/:id', async (req, res) => {
             // console.log(req.this_user)
 
-            const result = await exportsCol.findOne({ _id: new ObjectId(req.params.id) })
+            const cursor = exportsCol.aggregate([
+                { $match: { _id: new ObjectId(req.params.id) } },
+                {
+                    $lookup: {
+                        from: "users",          // foreign collection
+                        localField: "user_id",  // field in orders
+                        foreignField: "_id",       // matching field in products
+                        as: "user"              // output array field
+                    }
+                },
+                { $unwind: "$user" },
+            ])
+
+            const result = await cursor.toArray()
+
+            if (result.length > 0) {
+                return res.send(result[0]) //send first one
+            }
             // console.log(r)
-            res.send(result)
+            return res.status(404).send({ message: "Product not found" })
         })
 
         app.delete('/products/:id', verifyFireBaseUser, async (req, res) => {
