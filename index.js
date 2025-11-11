@@ -77,20 +77,25 @@ async function run() {
                 }
                 try {
                     const userInfo = await admin.auth().verifyIdToken(token)
-                    const user = await usersCol.findOne({ email: userInfo.email })
+                    let user = await usersCol.findOne({ email: userInfo.email })
                     //add user to the database if not exists
                     //TODO you may need to update user infos when user updates his profile
                     if (!user) {
                         const userInsert = await usersCol.insertOne(userInfo);
+                        // console.log(userInsert)
                         if (!userInsert.insertedId) {
-                            return res.status(503).send({ message: "Service unavailable" })
+                            return res.status(503).send({ message: "Service unavailable. (AX)" })
+                        }
+                        user=await usersCol.findOne({ email: userInfo.email })
+                        if(!user){
+                            return res.status(503).send({ message: "Service unavailable. (AZ)" })
                         }
                     }
                     req.this_user = user;
                     return next()
                 } catch (err) {
-                    // console.log(err)
-                    return res.status(503).send({ message: "Service unavailable." })
+                    //  console.log(err)
+                    return res.status(503).send({ message: "Service unavailable. (AY)" })
                 }
             }
 
