@@ -127,15 +127,16 @@ async function run() {
                         as: "product"              // output array field
                     }
                 },
+                { $unwind: "$product" },       // optional: flatten product array
                 {
                     $lookup: {
                         from: "users",          // foreign collection
-                        localField: "user_id",  // field in orders
+                        localField: "product.user_id",  // field in orders
                         foreignField: "_id",       // matching field in products
                         as: "user"              // output array field
                     }
                 },
-                { $unwind: "$product" },       // optional: flatten product array
+                
                 { $unwind: "$user" },
                 { $sort: { createdAt: -1 } }
             ])
