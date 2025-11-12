@@ -43,11 +43,20 @@ const client = new MongoClient(uri, {
 
 
 const app = express()
-app.use(cors())
+app.use(cors({
+     origin: [
+      "http://localhost:5173",
+      "https://career-portal-ph.web.app",
+      "https://career-portal-ph.firebaseapp.com",
+    ],
+}))
 app.use(express.json())
 
+const startTime=new Date();
+let TError="None"
 app.get('/', (req, res) => {
-    res.send("Server is running...")
+    res.send("Server is running...since "+startTime.toLocaleTimeString())
+    //res.send("Server is running...since "+startTime.toLocaleTimeString()+" Error: "+TError)
 })
 
 
@@ -56,10 +65,11 @@ app.get('/', (req, res) => {
 async function run() {
     try {
         // Connect the client to the server	(optional starting in v4.7)
+        console.log("Database connecting...")
         await client.connect();
+        console.log("Database connection successful...")
         // Send a ping to confirm a successful connection
-        await client.db("admin").command({ ping: 1 });
-        console.log("Pinged your deployment. You successfully connected to MongoDB!");
+        // await client.db("admin").command({ ping: 1 }); console.log("Pinged your deployment. You successfully connected to MongoDB!");
 
         const database = client.db('import_export');
         const exportsCol = database.collection('exports');
@@ -290,6 +300,7 @@ async function run() {
         // await client.close();
     }
 }
+
 
 run().catch(console.dir);
 
