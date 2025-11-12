@@ -46,8 +46,8 @@ const app = express()
 app.use(cors({
     origin: [
         "http://localhost:5173",
-        "https://career-portal-ph.web.app",
-        "https://career-portal-ph.firebaseapp.com",
+        "https://import-export-lab.web.app",
+        "https://import-export-lab.firebaseapp.com",
     ],
 }))
 app.use(express.json())
