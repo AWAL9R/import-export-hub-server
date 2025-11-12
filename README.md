@@ -1,6 +1,6 @@
 # ExportMania.App (Server)
 
-# Client Repo
+# Client Repository
 - [https://github.com/AWAL9R/import-export-hub-client](https://github.com/AWAL9R/import-export-hub-client)
 
 
