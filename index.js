@@ -44,18 +44,18 @@ const client = new MongoClient(uri, {
 
 const app = express()
 app.use(cors({
-     origin: [
-      "http://localhost:5173",
-      "https://career-portal-ph.web.app",
-      "https://career-portal-ph.firebaseapp.com",
+    origin: [
+        "http://localhost:5173",
+        "https://career-portal-ph.web.app",
+        "https://career-portal-ph.firebaseapp.com",
     ],
 }))
 app.use(express.json())
 
-const startTime=new Date();
-let TError="None"
+const startTime = new Date();
+let TError = "None"
 app.get('/', (req, res) => {
-    res.send("Server is running...since "+startTime.toLocaleTimeString())
+    res.send("Server is running...since " + startTime.toLocaleTimeString())
     //res.send("Server is running...since "+startTime.toLocaleTimeString()+" Error: "+TError)
 })
 
@@ -96,8 +96,8 @@ async function run() {
                         if (!userInsert.insertedId) {
                             return res.status(503).send({ message: "Service unavailable. (AX)" })
                         }
-                        user=await usersCol.findOne({ email: userInfo.email })
-                        if(!user){
+                        user = await usersCol.findOne({ email: userInfo.email })
+                        if (!user) {
                             return res.status(503).send({ message: "Service unavailable. (AZ)" })
                         }
                     }
@@ -146,7 +146,7 @@ async function run() {
                         as: "user"              // output array field
                     }
                 },
-                
+
                 { $unwind: "$user" },
                 { $sort: { createdAt: -1 } }
             ])
@@ -298,16 +298,19 @@ async function run() {
     } finally {
         // Ensures that the client will close when you finish/error
         // await client.close();
+
+        app.listen(port, () => {
+            console.log(`Server is running on port => ${port}`)
+        })
     }
 }
 
 
-run().catch(console.dir);
+run().catch(err => {
+    console.log(err)
+});
 
 
 
 
 
-app.listen(port, () => {
-    console.log(`Server is running on port => ${port}`)
-})
