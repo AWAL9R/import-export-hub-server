@@ -118,7 +118,7 @@ async function run() {
         app.get('/myExports', verifyFireBaseUser, async (req, res) => {
             // console.log(req.this_user)
 
-            const cursor = exportsCol.find({ user_id: req.this_user._id })
+            const cursor = exportsCol.find({ user_id: req.this_user._id }).sort({ createdAt: -1 })
             result = await cursor.toArray()
             // console.log(r)
             res.send(result)
